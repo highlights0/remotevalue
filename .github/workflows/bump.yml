@@ -1,24 +1,39 @@
 name: bump
 
 on:
-   repository_dispatch:
-       types: [bump]
+  repository_dispatch:
+    types: [bump]
 
 jobs:
-   bump:
-      runs-on: ubuntu-latest
-      steps:
-         - uses: actions/checkout@v4
-           with:
-                token: ${{ secrets.GH_PAT }}
-         - name: bump count
-            run: |
-                n=$(cat count.json)
-                echo $((n+1)) > count.json
-         - name: commit
-            run: |
-                git config user.name box
-                git config user.email box@example.com
-                git add count.json
-                git commit -m "bump"
-                git push
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_PAT }}
+      
+      - name: Check if count.json exists
+        run: |
+          if [ ! -f count.json ]; then
+            echo "0" > count.json
+            echo "创建 count.json 文件"
+          fi
+      
+      - name: bump count
+        run: |
+          # 读取当前数值，确保是数字
+          n=$(cat count.json | tr -cd '0-9')
+          if [ -z "$n" ]; then
+            n=0
+          fi
+          new_value=$((n + 1))
+          echo $new_value > count.json
+          echo "数值从 $n 增加到 $new_value"
+      
+      - name: commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add count.json
+          git commit -m "bump count to $(cat count.json)"
+          git push
