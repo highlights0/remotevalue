@@ -1,0 +1,24 @@
+name: bump
+
+on:
+   repository_dispatch:
+       types: [bump]
+
+jobs:
+   bump:
+      runs-on: ubuntu-latest
+      steps:
+         - uses: actions/checkout@v4
+           with:
+                token: ${{ secrets.GH_PAT }}
+         - name: bump count
+            run: |
+                n=$(cat count.json)
+                echo $((n+1)) > count.json
+         - name: commit
+            run: |
+                git config user.name box
+                git config user.email box@example.com
+                git add count.json
+                git commit -m "bump"
+                git push
